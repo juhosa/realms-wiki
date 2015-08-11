@@ -105,6 +105,15 @@ class User(Model, UserMixin):
     def check_password(password, hashed):
         return bcrypt.hashpw(password.encode('utf-8'), hashed.encode('utf-8')) == hashed
 
+    @staticmethod
+    def change_password(user, old_passwd, new_passwd):
+        if User.check_password(old_passwd, user.password):
+            user.password = User.hash_password(new_passwd)
+            user.save()
+            return True
+        else:
+            return False
+
     @classmethod
     def logout(cls):
         logout_user()

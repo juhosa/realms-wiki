@@ -15,3 +15,12 @@ class RegistrationForm(Form):
 class LoginForm(Form):
     email = StringField('Email', [validators.DataRequired()])
     password = PasswordField('Password', [validators.DataRequired()])
+
+
+class PasswordChangeForm(Form):
+    old_password = PasswordField('Old password', [validators.DataRequired()])
+    new_password = PasswordField('New password', [
+        validators.DataRequired(),
+        validators.EqualTo('confirm', message='Passwords must match')
+    ])
+    confirm = PasswordField('Repeat new password')

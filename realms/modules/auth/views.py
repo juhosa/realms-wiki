@@ -1,6 +1,6 @@
 from flask import current_app, render_template, request, redirect, Blueprint, flash, url_for
 from realms.modules.auth.models import User
-from realms.modules.auth.forms import LoginForm, RegistrationForm
+from realms.modules.auth.forms import LoginForm, RegistrationForm, PasswordChangeForm
 from flask.ext.login import current_user
 
 blueprint = Blueprint('auth', __name__)
@@ -72,6 +72,7 @@ def logout():
     User.logout()
     return redirect("/")
 
+
 @blueprint.route("/create_user", methods=['GET', 'POST'])
 def create_user():
 
@@ -84,18 +85,32 @@ def create_user():
 
         if not form.validate():
             flash('Form invalid', 'warning')
-            return redirect(url_for('auth.register'))
+            return redirect(url_for('auth.create_user'))
 
         if User.get_by_username(request.form['username']):
             flash('Username is taken', 'warning')
-            return redirect(url_for('auth.register'))
+            return redirect(url_for('auth.create_user'))
 
         if User.get_by_email(request.form['email']):
             flash('Email is taken', 'warning')
-            return redirect(url_for('auth.register'))
+            return redirect(url_for('auth.create_user'))
 
         User.create(request.form['username'], request.form['email'], request.form['password'])
 
         flash("User %s created" % request.form['username'])
 
     return render_template("auth/create_user.html", form=form)
+
+
+@blueprint.route("/change_password", methods=['GET', 'POST'])
+def change_password():
+    if current_user.is_anonymous():
+        return redirect(url_for('auth.login'))
+
+    form = PasswordChangeForm()
+
+    if request.method == "POST":
+        User.change_password(current_user, request.form['old_password'], request.form['new_password'])
+        flash("Password changed")
+
+    return render_template("auth/change_password.html", form=form)
